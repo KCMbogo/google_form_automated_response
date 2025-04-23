@@ -31,3 +31,7 @@ Create a `.env` file in the root folder with:
 ```env
 USER_AGENT=YourUserAgentHere
 GOOGLE_FORM_BASE_PREFILL_URL=https://docs.google.com/forms/d/e/XXXXXXXXXXXXXXXXXXXXXXXXXX/viewform?usp=pp_url
+
+#### NOTE: 
+The USER_AGENT is just any random value you choose for it. 
+The GOOGLE_FORM_BASE_PREFILL_URL is the url that you get when you go to the prefill section of your Google form(you only have to take the base part and use, the variable or query parameter seen in the url are added in the json file)
