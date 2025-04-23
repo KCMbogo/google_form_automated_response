@@ -278,5 +278,5 @@ def submit_form_with_manual_fill(num_submissions=1, randomize=False):
 if __name__ == "__main__":
     # Choose which function to use
 
-    submit_form(num_submissions=2, randomize=True)  # Uses prefilled URLs
+    submit_form(num_submissions=10, randomize=True)  # Uses prefilled URLs
     # submit_form_with_manual_fill(num_submissions=1, randomize=True)  # Fills in the form manually
