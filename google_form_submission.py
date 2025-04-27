@@ -5,10 +5,23 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from dotenv import load_dotenv
-import time
+import time, logging
 import random, os, json
 
 load_dotenv()
+
+# Setup logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.FileHandler("form_automation.log"),
+        logging.StreamHandler()
+    ]
+)
+
+logger = logging.getLogger(__name__)
 
 # Environment variables 
 USER_AGENT = os.getenv("USER_AGENT")
@@ -27,7 +40,7 @@ def submit_form(num_submissions=1, randomize=False):
     chrome_options.add_argument(f"--user-agent={USER_AGENT}")
 
     # Uncomment the line below to run in headless mode (no browser UI)
-    # chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--headless")
     
     # Initialize WebDriver
     driver = webdriver.Chrome(options=chrome_options)
@@ -94,7 +107,7 @@ def submit_form(num_submissions=1, randomize=False):
         
         # Navigate to the form
         driver.get(url)
-        print(f"Processing submission {i+1}/{num_submissions}")
+        logger.info(f"======Processing submission {i+1}/{num_submissions}")
         
         # Step 1: Click on the first "Next" button - using the exact XPath you provided
         try:
@@ -105,7 +118,8 @@ def submit_form(num_submissions=1, randomize=False):
             first_next_button.click()
             time.sleep(2)  # Wait for page transition
         except Exception as e:
-            print(f"Error clicking first Next button: {e}")
+            # print(f"Error clicking first Next button: {e}")
+            logger.error(f"Error clicking first next button: {e}")
             # driver.save_screenshot(f"first_page_error_{i+1}.png")
             continue  # Skip to next submission if we can't proceed
         
@@ -121,7 +135,8 @@ def submit_form(num_submissions=1, randomize=False):
             second_next_button.click()
             time.sleep(2)  # Wait for page transition
         except Exception as e:
-            print(f"Error clicking second Next button: {e}")
+            # print(f"Error clicking second Next button: {e}")
+            logger.exception(f"Error clicking the next button: {e}")
             # driver.save_screenshot(f"second_page_error_{i+1}.png")
             continue  # Skip to next submission if we can't proceed
         
@@ -130,11 +145,13 @@ def submit_form(num_submissions=1, randomize=False):
             submit_button = WebDriverWait(driver, 10).until(
                 EC.element_to_be_clickable((By.XPATH, '//*[@id="mG61Hd"]/div[2]/div/div[3]/div/div[1]/div[2]/span/span'))
             )
-            print("Found the Submit button")
+            # print("Found the Submit button")
+            logger.info(f"Found the submit button")
             submit_button.click()
             time.sleep(2)  # Wait for submission
         except Exception as e:
-            print(f"Error clicking Submit button: {e}")
+            # print(f"Error clicking Submit button: {e}")
+            logger.exception(f"Error clicking the submit button: {e}")
             # driver.save_screenshot(f"third_page_error_{i+1}.png")
             continue  # Skip to next submission if we can't proceed
         
@@ -143,16 +160,19 @@ def submit_form(num_submissions=1, randomize=False):
             WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.XPATH, "//*[contains(text(), 'Your response has been recorded') or contains(text(), 'Form submitted') or contains(text(), 'Thanks')]"))
             )
-            print(f"Submission {i+1}/{num_submissions} confirmed successful")
+            # print(f"Submission {i+1}/{num_submissions} confirmed successful")
+            logger.info(f"Submission {i+1}/{num_submissions} confirmed successful")
         except:
-            print(f"Could not confirm if submission {i+1}/{num_submissions} was successful")
+            # print(f"Could not confirm if submission {i+1}/{num_submissions} was successful")
+            logger.warning(f"Could not confirm if submission {i+1}/{num_submissions} was successful")
             # driver.save_screenshot(f"confirmation_page_error_{i+1}.png")
         
         time.sleep(3)  # Pause between submissions
     
     # Close the browser once all submissions are complete
     driver.quit()
-    print("All submission attempts completed!")
+    # print("All submission attempts completed!")
+    logger.info("All submission attempts completed!")
 
 def submit_form_with_manual_fill(num_submissions=1, randomize=False):
     """
@@ -174,7 +194,8 @@ def submit_form_with_manual_fill(num_submissions=1, randomize=False):
     for i in range(num_submissions):
         # Navigate to the form
         driver.get(base_url)
-        print(f"Processing submission {i+1}/{num_submissions}")
+        # print(f"======Processing submission {i+1}/{num_submissions}")
+        logger.info(f"======Processing submission {i+1}/{num_submissions}")
         
         # Wait for the form to load
         time.sleep(3)
@@ -195,17 +216,20 @@ def submit_form_with_manual_fill(num_submissions=1, randomize=False):
                     option_to_select = random.choice(options) if randomize else options[0]
                     driver.execute_script("arguments[0].scrollIntoView();", option_to_select)
                     option_to_select.click()
-                    print(f"Selected an option for question {q_idx+1}")
+                    # print(f"Selected an option for question {q_idx+1}")
+                    logger.info(f"Selected an option for question {q_idx+1}")
             
             # Click the next button
             first_next_button = WebDriverWait(driver, 10).until(
                 EC.element_to_be_clickable((By.XPATH, '//*[@id="mG61Hd"]/div[2]/div/div[3]/div/div[1]/div/span/span'))
             )
             first_next_button.click()
-            print("Moved to page 2")
+            # print("Moved to page 2")
+            logger.info("Moved to page 2")
             time.sleep(2)
         except Exception as e:
             print(f"Error on page 1: {e}")
+            logger.exception(f"Error on page 1: {e}")
             # driver.save_screenshot(f"page1_error_{i+1}.png")
             continue
         
@@ -221,16 +245,19 @@ def submit_form_with_manual_fill(num_submissions=1, randomize=False):
                     driver.execute_script("arguments[0].scrollIntoView();", option_to_select)
                     option_to_select.click()
                     print(f"Selected an option for question {q_idx+1} on page 2")
-            
+                    logger.info(f"Selected an option for question {q_idx+1} on page 2")
+
             # Click the next button
             second_next_button = WebDriverWait(driver, 10).until(
                 EC.element_to_be_clickable((By.XPATH, '//*[@id="mG61Hd"]/div[2]/div/div[3]/div/div[1]/div[2]/span/span'))
             )
             second_next_button.click()
             print("Moved to page 3")
+            logger.info("Moved to page 3")
             time.sleep(2)
         except Exception as e:
-            print(f"Error on page 2: {e}")
+            # print(f"Error on page 2: {e}")
+            logger.exception(f"Error on page 2: {e}")
             # driver.save_screenshot(f"page2_error_{i+1}.png")
             continue
         
@@ -245,17 +272,20 @@ def submit_form_with_manual_fill(num_submissions=1, randomize=False):
                     option_to_select = random.choice(options) if randomize else options[0]
                     driver.execute_script("arguments[0].scrollIntoView();", option_to_select)
                     option_to_select.click()
-                    print(f"Selected an option for question {q_idx+1} on page 3")
+                    # print(f"Selected an option for question {q_idx+1} on page 3")
+                    logger.info(f"Selected an option for question {q_idx+1} on page 3")
             
             # Click the submit button
             submit_button = WebDriverWait(driver, 10).until(
                 EC.element_to_be_clickable((By.XPATH, '//*[@id="mG61Hd"]/div[2]/div/div[3]/div/div[1]/div[2]/span/span'))
             )
             submit_button.click()
-            print("Submitted the form")
+            # print("Submitted the form")
+            logger.info("Submitted the form")
             time.sleep(2)
         except Exception as e:
-            print(f"Error on page 3: {e}")
+            # print(f"Error on page 3: {e}")
+            logger.exception(f"Error on page 3: {e}")
             # driver.save_screenshot(f"page3_error_{i+1}.png")
             continue
         
@@ -264,19 +294,22 @@ def submit_form_with_manual_fill(num_submissions=1, randomize=False):
             WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.XPATH, "//*[contains(text(), 'Your response has been recorded') or contains(text(), 'Form submitted') or contains(text(), 'Thanks')]"))
             )
-            print(f"Submission {i+1}/{num_submissions} confirmed successful")
+            # print(f"Submission {i+1}/{num_submissions} confirmed successful")
+            logger.info(f"Submission {i+1}/{num_submissions} confirmed successful")
         except:
-            print(f"Could not confirm if submission {i+1}/{num_submissions} was successful")
+            # print(f"Could not confirm if submission {i+1}/{num_submissions} was successful")
+            logger.exception(f"Could not confirm if submission {i+1}/{num_submissions} was successful")
             # driver.save_screenshot(f"confirmation_error_{i+1}.png")
         
         time.sleep(3)  # Pause between submissions
     
     # Close the browser once all submissions are complete
     driver.quit()
-    print("All submission attempts completed!")
+    # print("All submission attempts completed!")
+    logger.info("All submission attempts completed!")
 
 if __name__ == "__main__":
     # Choose which function to use
 
-    submit_form(num_submissions=10, randomize=True)  # Uses prefilled URLs
+    submit_form(num_submissions=2, randomize=True)  # Uses prefilled URLs
     # submit_form_with_manual_fill(num_submissions=1, randomize=True)  # Fills in the form manually
